@@ -1,0 +1,53 @@
+<p-table [value]="data()" [loading]="loading()" [paginator]="true" [rows]="10" [showCurrentPageReport]="true"
+  currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries" styleClass="p-datatable-striped">
+
+  <ng-template pTemplate="header">
+    <tr class="bg-slate-100 text-slate-600 text-sm">
+      <th class="rounded-tl-lg font-semibold py-3 px-4">Title</th>
+      <th class="font-semibold py-3 px-4">Title Arabic</th>
+      <th class="font-semibold py-3 px-4">Category</th>
+      <th class="font-semibold py-3 px-4">Parent</th>
+      <th class="font-semibold py-3 px-4">Image</th>
+      <th class="rounded-tr-lg font-semibold py-3 px-4 text-center">Action</th>
+    </tr>
+  </ng-template>
+
+  <ng-template pTemplate="body" let-item>
+    <tr class="text-slate-700 text-sm border-b border-slate-50">
+      <td class="py-3 px-4">{{ item.title }}</td>
+      <td class="py-3 px-4 font-arabic">{{ item.titleArabic }}</td>
+      <td class="py-3 px-4">{{ item.displayCategory }}</td>
+      <td class="py-3 px-4">{{ item.displayParent }}</td>
+      <td class="py-3 px-4">
+        <div class="w-8 h-8 rounded-full bg-yellow-100 border-2 border-indigo-200 flex items-center justify-center">
+          <i class="pi pi-lightbulb text-yellow-500"></i>
+        </div>
+      </td>
+      <td class="text-center">
+  <div class="flex justify-center items-center gap-3">
+    <p-button 
+      (click)="onView.emit(item)"
+      [rounded]="true" 
+      [text]="true"
+      severity="success"
+      styleClass="view-btn">
+      <ng-template pTemplate="content">
+        <i class="pi pi-eye text-emerald-600 text-lg"></i>
+      </ng-template>
+    </p-button>
+
+    <p-button 
+      (click)="onDelete.emit(item)"
+      [rounded]="true" 
+      [text]="true"
+      severity="danger"
+      styleClass="delete-btn">
+      <ng-template pTemplate="content">
+        <i class="pi pi-trash text-red-600 text-lg"></i>
+      </ng-template>
+    </p-button>
+  </div>
+</td>
+    </tr>
+  </ng-template>
+</p-table>

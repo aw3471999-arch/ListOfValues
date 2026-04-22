@@ -1,0 +1,101 @@
+<p-dialog 
+    [header]="mode() === 'ADD' ? 'Add List of Value' : (mode() === 'SEARCH' ? 'Search List of Value' : 'List of Value Details')" 
+    [(visible)]="visible"
+    (onShow)="prepareDialog()" 
+    [modal]="true" 
+    [style]="{ width: '70vw' }" 
+    [draggable]="false" 
+    [resizable]="false"
+    class="p-fluid">
+
+    <form [formGroup]="lovForm" class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+        
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-slate-500">Title <span class="text-red-500" *ngIf="mode() === 'ADD'">*</span></label>
+            <input pInputText formControlName="title" placeholder="Enter Title" class="rounded-lg border-slate-200"
+                [class.ng-invalid]="lovForm.get('title')?.invalid && lovForm.get('title')?.touched">
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-slate-500">Title Arabic <span class="text-red-500" *ngIf="mode() === 'ADD'">*</span></label>
+            <input pInputText formControlName="titleArabic" placeholder="Enter Title Arabic" class="rounded-lg border-slate-200">
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-slate-500">Category <span class="text-red-500" *ngIf="mode() === 'ADD'">*</span></label>
+            <p-select 
+                [options]="categories()" 
+                formControlName="lovTypeId" 
+                optionLabel="title" 
+                optionValue="lovTypeId"
+                placeholder="Select Category" 
+                [showClear]="true"
+                styleClass="rounded-lg border-slate-200">
+            </p-select>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-slate-500">Parent</label>
+            <p-select 
+                [options]="parents()" 
+                formControlName="parentLovId" 
+                optionLabel="title"
+                optionValue="lovId" 
+                placeholder="Select Parent"
+                [showClear]="true"
+                styleClass="rounded-lg border-slate-200">
+            </p-select>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-slate-500">Description <span class="text-red-500" *ngIf="mode() === 'ADD'">*</span></label>
+            <input pInputText formControlName="description" placeholder="Enter Description" class="rounded-lg border-slate-200">
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label class="text-sm font-medium text-slate-500">Description Arabic <span class="text-red-500" *ngIf="mode() === 'ADD'">*</span></label>
+            <input pInputText formControlName="descriptionArabic" placeholder="Enter Description Arabic" class="rounded-lg border-slate-200">
+        </div>
+
+        @if (mode() === 'ADD') {
+            <div class="col-span-1 md:col-span-3">
+                <label class="text-sm font-medium text-slate-500">Image</label>
+                <div class="mt-2">
+                    <button pButton type="button" label="Upload Image" icon="pi pi-plus"
+                        class="bg-emerald-500 border-none w-auto px-4 py-2"></button>
+                    <p class="text-xs text-slate-400 mt-1 italic">Allowed types: .png, .jpg, .jpeg</p>
+                </div>
+            </div>
+        }
+    </form>
+
+    <ng-template pTemplate="footer">
+        <div class="flex justify-between items-center w-full pt-4 border-t border-slate-100 mt-4">
+            
+            <p-button 
+                label="Clear" 
+                [outlined]="true"
+                styleClass="text-emerald-500 border-emerald-500 hover:bg-emerald-50 px-6"
+                (click)="lovForm.reset()">
+            </p-button>
+
+            <div class="flex gap-2">
+                @if (mode() !== 'VIEW') {
+                    <p-button 
+                        [label]="mode() === 'ADD' ? 'Add' : 'Search'" 
+                        [disabled]="mode() === 'ADD' && lovForm.invalid"
+                        [styleClass]="(mode() === 'ADD' && lovForm.invalid) ? 'bg-slate-100 text-slate-400 border-none' : 'bg-emerald-500 text-white border-none px-8'"
+                        (click)="handleAction()">
+                    </p-button>
+                }
+                
+                <p-button 
+                    label="Close" 
+                    [outlined]="true"
+                    styleClass="text-emerald-500 border-emerald-500 hover:bg-emerald-50 px-6"
+                    (click)="close()">
+                </p-button>
+            </div>
+        </div>
+    </ng-template>
+</p-dialog>

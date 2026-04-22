@@ -1,0 +1,21 @@
+.scroll-area {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+}
+
+.scroll-area::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+/* Ensure buttons don't shrink and are fully visible */
+:host ::ng-deep .p-button {
+  white-space: nowrap !important;
+}
+
+/* Extra vertical padding prevents 'Raised' shadows from being cut off */
+.flex.gap-2.p-1 {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+}

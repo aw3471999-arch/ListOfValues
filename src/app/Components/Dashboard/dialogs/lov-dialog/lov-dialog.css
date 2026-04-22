@@ -1,0 +1,15 @@
+/* Ensure the form doesn't trigger horizontal scroll */
+.dialog-form-container {
+    overflow-x: hidden;
+    padding: 0.5rem;
+}
+
+/* Make sure inputs take full width of their grid cell */
+.w-full {
+    width: 100% !important;
+}
+
+/* PrimeNG specific fix for textarea */
+textarea {
+    resize: none;
+}
