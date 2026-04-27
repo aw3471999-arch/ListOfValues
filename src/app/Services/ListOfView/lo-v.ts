@@ -1,15 +1,23 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
-import { tap } from 'rxjs';
+import { Router } from '@angular/router';
+import { of, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
 export class LoV {
   private http = inject(HttpClient);
+  private router = inject(Router);
   baseApiUrl = 'https://deveduportalbe.hive-worx.com:3038/edunode';
 
   isLoggedIn = signal<boolean>(!!localStorage.getItem('token'));
+
+  // verifyUser() {
+  //   const token = localStorage.getItem('token');
+  //   if (!token) return of(null);
+  //   return this.http.post<any>(`${this.baseApiUrl}/verifyUser`, { data: [{ token }] });
+  // }
 
   getCategories() {
     const body = { data: [{}] };
@@ -37,22 +45,32 @@ export class LoV {
   }
 
   login(credentials: any) {
-  const body = { data: [credentials] };
-  return this.http.post<any>(`${this.baseApiUrl}/login`, body).pipe(
-    tap((response) => {
-      const token = response?.data?.[0]?.verification?.token;
-      if (token) {
-        // Force immediate write
-        localStorage.setItem('token', token);
-        this.isLoggedIn.set(true);
-        console.log('Token saved successfully');
-      }
-    })
-  );
-}
+    const body = { data: [credentials] };
+    return this.http.post<any>(`${this.baseApiUrl}/login`, body).pipe(
+      tap((response) => {
+        const verification = response?.data?.[0]?.verification;
+        const token = verification?.token;
+
+        if (token) {
+          localStorage.setItem('token', token);
+          
+          // if (verification?.case === 'ALREADY_LOGGED_IN') {
+            // this.verifyUser().subscribe({
+            //   next: (res) => {
+            //     this.isLoggedIn.set(true);
+            //     this.router.navigate(['/dashboard']);
+            //   },
+            // });
+          // } else {
+            this.isLoggedIn.set(true);
+          // }
+        }
+      })
+    );
+  }
 
   logout() {
-  localStorage.clear();
-  this.isLoggedIn.set(false);
-}
+    localStorage.removeItem('token');
+    this.isLoggedIn.set(false);
+  }
 }

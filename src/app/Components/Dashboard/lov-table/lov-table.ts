@@ -14,4 +14,6 @@ export class LovTable {
   loading = input<boolean>(true);
   onView = output<any>();
   onDelete = output<any>();
+
+  
 }

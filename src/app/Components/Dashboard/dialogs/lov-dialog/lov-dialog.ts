@@ -13,7 +13,6 @@ export type DialogMode = 'ADD' | 'SEARCH' | 'VIEW';
 export class LovDialog {
   private fb = inject(FormBuilder);
 
-  // Inputs & Signals
   visible = model<boolean>(false);
   mode = input.required<DialogMode>();
   item = input<any>(null);
@@ -31,14 +30,29 @@ export class LovDialog {
     parentLovId: [null]
   });
 
+  constructor() {
+    effect(() => {
+      if (this.visible()) {
+        untracked(() => this.prepareDialog());
+      }
+    });
+  }
+
   prepareDialog() {
     const currentMode = this.mode();
     const currentItem = this.item();
 
     this.lovForm.reset();
 
-    if (currentItem && (currentMode === 'VIEW' || currentMode === 'ADD')) {
-        this.lovForm.patchValue(currentItem);
+    if (currentItem && currentMode === 'VIEW') {
+      const categoryMatch = this.categories().find(c => 
+        c.lovTypeId === (currentItem.lovTypeId?.lovTypeId || currentItem.lovTypeId)
+      );
+
+      this.lovForm.patchValue({
+        ...currentItem,
+        lovTypeId: categoryMatch || null
+      });
     }
     const controls = ['title', 'titleArabic', 'description', 'descriptionArabic', 'lovTypeId'];
     controls.forEach(key => {

@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { Dashboard } from './Components/Dashboard/dashboard/dashboard/dashboard';
 import { Login } from './Components/login/login';
-import { authGuard} from './Components/Gaurd/authguard.guard';
+// import { authGuard} from './Components/Gaurd/authguard.guard';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -9,7 +9,7 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: Dashboard,
-    canActivate:[authGuard]
+    // canActivate:[authGuard]
   },
 
   { path: '', redirectTo: 'login', pathMatch: 'full' },

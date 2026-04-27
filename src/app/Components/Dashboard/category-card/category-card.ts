@@ -1,15 +1,16 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { PrimengModule } from '../../../Module/primeng.module';
 import { CategoryToolbar } from "../category-toolbar/category-toolbar";
-import { LovCard } from "../lov-card/lov-card";
+// import { LovCard } from "../lov-card/lov-card";
 import { LoV } from '../../../Services/ListOfView/lo-v';
 import { Router } from '@angular/router';
 import { DialogMode, LovDialog } from '../dialogs/lov-dialog/lov-dialog';
+import { LovTable } from "../lov-table/lov-table";
 
 @Component({
   selector: 'app-category-card',
   standalone: true,
-  imports: [PrimengModule, LovCard, CategoryToolbar, LovDialog],
+  imports: [PrimengModule, CategoryToolbar, LovDialog, LovTable],
   templateUrl: './category-card.html',
   styleUrl: './category-card.css',
 })
@@ -113,15 +114,15 @@ export class CategoryCard implements OnInit {
 
   onSearch(criteria: any) {
     this.isLoading.set(true);
-    const formattedCriteria ={
+    const formattedCriteria = {
       ...criteria,
       lovTypeId: criteria.lovTypeId?.lovTypeId || criteria.lovTypeId
     };
 
     const cleanCriteria = Object.fromEntries(
-        Object.entries(formattedCriteria).filter(([_, v]) => v != null && v !== '')
+      Object.entries(formattedCriteria).filter(([_, v]) => v != null && v !== '')
     );
-    this.apiService.searchLov(criteria).subscribe({
+    this.apiService.searchLov(cleanCriteria).subscribe({
       next: (response) => {
         const results = response.data?.[0]?.[0] || response.data?.[0] || [];
         const mappedData = results.map((item: any) => ({
@@ -150,6 +151,11 @@ export class CategoryCard implements OnInit {
 
   onlogout() {
     this.apiService.logout();
+
+    this.listValues.set([]);
+    this.originalListValues.set([]);
+    this.currentLovTypeId.set(null);
+
     this.router.navigate(['/login']);
   }
 }
