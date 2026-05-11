@@ -1,12 +1,12 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { of, tap } from 'rxjs';
+import { tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
 })
-export class LoV {
+export class LovService {
   private http = inject(HttpClient);
   private router = inject(Router);
   baseApiUrl = 'https://deveduportalbe.hive-worx.com:3038/edunode';
@@ -53,17 +53,7 @@ export class LoV {
 
         if (token) {
           localStorage.setItem('token', token);
-          
-          // if (verification?.case === 'ALREADY_LOGGED_IN') {
-            // this.verifyUser().subscribe({
-            //   next: (res) => {
-            //     this.isLoggedIn.set(true);
-            //     this.router.navigate(['/dashboard']);
-            //   },
-            // });
-          // } else {
-            this.isLoggedIn.set(true);
-          // }
+          this.isLoggedIn.set(true);
         }
       })
     );

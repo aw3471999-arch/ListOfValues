@@ -1,6 +1,7 @@
-import { Component, effect, inject, input, output, signal } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { PrimengModule } from '../../../Module/primeng.module';
-import { LoV } from '../../../Services/ListOfView/lo-v';
+import { LovService } from '../../../Services/lov.service';
+import { LovItem } from '../../../Interface/interface/lo-v-interface';
 
 @Component({
   selector: 'app-lov-table',
@@ -9,11 +10,9 @@ import { LoV } from '../../../Services/ListOfView/lo-v';
   styleUrl: './lov-table.css',
 })
 export class LovTable {
-  public loVServ = inject(LoV);
-  data = input<any[]>([]);
+  public loVServ = inject(LovService);
+  data = input<LovItem[]>([]);
   loading = input<boolean>(true);
-  onView = output<any>();
-  onDelete = output<any>();
-
-  
+  onView = output<LovItem>();
+  onDelete = output<LovItem>();
 }

@@ -1,7 +1,8 @@
 import { Component, inject, output, signal, computed, OnInit } from '@angular/core';
 import { PrimengModule } from '../../../Module/primeng.module';
-import { LoV } from '../../../Services/ListOfView/lo-v';
+import { LovService } from '../../../Services/lov.service';
 import { FormsModule } from '@angular/forms';
+import { LovType } from '../../../Interface/interface/lo-v-interface';
 
 @Component({
   selector: 'app-category-toolbar',
@@ -11,16 +12,16 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './category-toolbar.css',
 })
 export class CategoryToolbar implements OnInit {
-  private apiService = inject(LoV);
-  
-  categories = signal<any[]>([]);
-  selectedCategory = signal<any>(null);
+  private apiService = inject(LovService);
+
+  categories = signal<LovType[]>([]);
+  selectedCategory = signal<LovType | null>(null);
   isLoading = signal<boolean>(true);
   isSearchOpen = signal<boolean>(false);
   searchTerm = signal<string>('');
 
   categorySelected = output<number>();
-  categoriesLoaded = output<any[]>();
+  categoriesLoaded = output<LovType[]>();
 
   filteredCategories = computed(() => {
     const term = this.searchTerm()?.toLowerCase().trim();

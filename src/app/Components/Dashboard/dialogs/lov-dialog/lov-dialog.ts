@@ -1,6 +1,7 @@
 import { Component, inject, input, model, output, effect, untracked } from '@angular/core';
 import { PrimengModule } from '../../../../Module/primeng.module';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { LovItem, LovType } from '../../../../Interface/interface/lo-v-interface';
 
 export type DialogMode = 'ADD' | 'SEARCH' | 'VIEW';
 
@@ -8,16 +9,16 @@ export type DialogMode = 'ADD' | 'SEARCH' | 'VIEW';
   selector: 'app-lov-dialog',
   standalone: true,
   imports: [PrimengModule, ReactiveFormsModule],
-  templateUrl: './lov-dialog.html'
+  templateUrl: './lov-dialog.html',
 })
 export class LovDialog {
   private fb = inject(FormBuilder);
 
   visible = model<boolean>(false);
   mode = input.required<DialogMode>();
-  item = input<any>(null);
-  categories = input<any[]>([]);
-  parents = input<any[]>([]);
+  item = input<LovItem | null>(null);
+  categories = input<LovType[]>([]);
+  parents = input<LovItem[]>([]);
 
   onConfirm = output<any>();
 
@@ -44,14 +45,17 @@ export class LovDialog {
 
     this.lovForm.reset();
 
-    if (currentItem && currentMode === 'VIEW') {
-      const categoryMatch = this.categories().find(c => 
-        c.lovTypeId === (currentItem.lovTypeId?.lovTypeId || currentItem.lovTypeId)
-      );
+    if (currentItem && (currentMode === 'VIEW' || currentMode === 'ADD')) {
+      const lovTypeId =
+        typeof currentItem.lovTypeId === 'object'
+          ? currentItem.lovTypeId.lovTypeId
+          : currentItem.lovTypeId;
+
+      const categoryMatch = this.categories().find((c) => c.lovTypeId === lovTypeId);
 
       this.lovForm.patchValue({
         ...currentItem,
-        lovTypeId: categoryMatch || null
+        lovTypeId: categoryMatch || null,
       });
     }
     const controls = ['title', 'titleArabic', 'description', 'descriptionArabic', 'lovTypeId'];
