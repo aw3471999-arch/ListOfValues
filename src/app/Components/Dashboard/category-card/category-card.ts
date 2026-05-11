@@ -6,6 +6,7 @@ import { LoV } from '../../../Services/ListOfView/lo-v';
 import { Router } from '@angular/router';
 import { DialogMode, LovDialog } from '../dialogs/lov-dialog/lov-dialog';
 import { LovTable } from "../lov-table/lov-table";
+import { BehaviorSubject, catchError, map, Observable, of, switchMap, tap } from 'rxjs';
 
 @Component({
   selector: 'app-category-card',
@@ -18,8 +19,9 @@ export class CategoryCard implements OnInit {
   private apiService = inject(LoV);
   private router = inject(Router);
 
+  private refreshTrigger$ = new BehaviorSubject<{type: 'FETCH' | 'SEARCH', payload: any} | null>(null);
+  listValues$!: Observable<any[]>;
   originalListValues = signal<any[]>([]);
-  listValues = signal<any[]>([]);
   isLoading = signal<boolean>(false);
   currentLovTypeId = signal<number | null>(null);
   toolbarCategories = signal<any[]>([]);
@@ -28,7 +30,43 @@ export class CategoryCard implements OnInit {
   currentMode = signal<DialogMode>('ADD');
   selectedDetailItem = signal<any>(null);
 
-  ngOnInit() { }
+  ngOnInit() {
+    this.listValues$ = this.refreshTrigger$.pipe(
+      switchMap(trigger => {
+        if (!trigger) return of([]);
+        this.isLoading.set(true);
+
+        let apiCall: Observable<any>;
+        if (trigger.type === 'FETCH') {
+          apiCall = this.apiService.getListOfValues(trigger.payload);
+        } else {
+          apiCall = this.apiService.searchLov(trigger.payload);
+        }
+
+        return apiCall.pipe(
+          map(response => {
+            const rawData = response.data?.[0]?.[0] || response.data?.[0] || [];
+            return rawData.map((item: any) => ({
+              ...item,
+              displayCategory: item.lovTypeId?.title || 'N/A',
+              displayParent: item.parentLovId?.title || '-'
+            }));
+          }),
+          tap(mappedData => {
+            if (trigger.type === 'FETCH') {
+              this.originalListValues.set(mappedData);
+            }
+            this.isLoading.set(false);
+          }),
+          catchError(err => {
+            console.error(err);
+            this.isLoading.set(false);
+            return of([]);
+          })
+        );
+      })
+    );
+  }
 
   onCategoriesLoaded(cats: any[]) {
     this.toolbarCategories.set(cats);
@@ -36,7 +74,7 @@ export class CategoryCard implements OnInit {
 
   onCategoryChange(id: number) {
     this.currentLovTypeId.set(id);
-    this.fetchTableData(id);
+    this.refreshTrigger$.next({ type: 'FETCH', payload: id });
   }
 
   openAdd() {
@@ -65,33 +103,9 @@ export class CategoryCard implements OnInit {
     }
   }
 
-  fetchTableData(categoryId: number) {
-    if (!categoryId) {
-      return;
-    }
-    this.isLoading.set(true);
-    this.apiService.getListOfValues(categoryId).subscribe({
-      next: (response) => {
-        const rawTableData = response.data?.[0]?.[0] || [];
-        const mappedData = rawTableData.map((item: any) => ({
-          ...item,
-          displayCategory: item.lovTypeId?.title || 'N/A',
-          displayParent: item.parentLovId?.title || '-'
-        }));
-        this.originalListValues.set(mappedData);
-        this.listValues.set(mappedData);
-        this.isLoading.set(false);
-      },
-      error: (err) => {
-        console.error(err);
-        this.isLoading.set(false);
-      }
-    });
-  }
-
   refreshTable() {
     const id = this.currentLovTypeId();
-    if (id) this.fetchTableData(id);
+    if (id) this.onCategoryChange(id);
   }
 
   onAddItem(formData: any) {
@@ -113,7 +127,6 @@ export class CategoryCard implements OnInit {
   }
 
   onSearch(criteria: any) {
-    this.isLoading.set(true);
     const formattedCriteria = {
       ...criteria,
       lovTypeId: criteria.lovTypeId?.lovTypeId || criteria.lovTypeId
@@ -122,22 +135,7 @@ export class CategoryCard implements OnInit {
     const cleanCriteria = Object.fromEntries(
       Object.entries(formattedCriteria).filter(([_, v]) => v != null && v !== '')
     );
-    this.apiService.searchLov(cleanCriteria).subscribe({
-      next: (response) => {
-        const results = response.data?.[0]?.[0] || response.data?.[0] || [];
-        const mappedData = results.map((item: any) => ({
-          ...item,
-          displayCategory: item.lovTypeId?.title || 'N/A',
-          displayParent: item.parentLovId?.title || '-'
-        }));
-        this.listValues.set(mappedData);
-        this.isLoading.set(false);
-      },
-      error: (err) => {
-        console.error(err);
-        this.isLoading.set(false);
-      }
-    });
+    this.refreshTrigger$.next({ type: 'SEARCH', payload: cleanCriteria });
   }
 
   onDeleteItem(item: any) {
@@ -152,7 +150,7 @@ export class CategoryCard implements OnInit {
   onlogout() {
     this.apiService.logout();
 
-    this.listValues.set([]);
+    this.refreshTrigger$.next(null);
     this.originalListValues.set([]);
     this.currentLovTypeId.set(null);
 

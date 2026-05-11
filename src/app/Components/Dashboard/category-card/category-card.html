@@ -42,7 +42,7 @@
             </div>
 
             <app-lov-table 
-                [data]="listValues()" 
+                [data]="(listValues$ | async) || []"
                 [loading]="isLoading()"
                 (onView)="openView($event)"
                 (onDelete)="onDeleteItem($event)">

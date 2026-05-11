@@ -38,7 +38,7 @@
         <div class="text-sm text-slate-400 italic py-2">Loading...</div>
       }
 
-      @for (cat of filteredCategories(); track cat.lovTypeId) {
+      @for (cat of (filteredCategories$ | async); track cat.lovTypeId) {
         <p-button 
           [label]="cat.title" 
           [outlined]="selectedCategory()?.lovTypeId !== cat.lovTypeId"

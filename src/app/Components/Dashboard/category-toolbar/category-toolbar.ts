@@ -2,6 +2,8 @@ import { Component, inject, output, signal, computed, OnInit } from '@angular/co
 import { PrimengModule } from '../../../Module/primeng.module';
 import { LoV } from '../../../Services/ListOfView/lo-v';
 import { FormsModule } from '@angular/forms';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { catchError, combineLatest, map, Observable, of, startWith, tap } from 'rxjs';
 
 @Component({
   selector: 'app-category-toolbar',
@@ -13,7 +15,8 @@ import { FormsModule } from '@angular/forms';
 export class CategoryToolbar implements OnInit {
   private apiService = inject(LoV);
   
-  categories = signal<any[]>([]);
+  categories$!: Observable<any[]>;
+  filteredCategories$!: Observable<any[]>;
   selectedCategory = signal<any>(null);
   isLoading = signal<boolean>(true);
   isSearchOpen = signal<boolean>(false);
@@ -22,17 +25,38 @@ export class CategoryToolbar implements OnInit {
   categorySelected = output<number>();
   categoriesLoaded = output<any[]>();
 
-  filteredCategories = computed(() => {
-    const term = this.searchTerm()?.toLowerCase().trim();
-    const allCategories = this.categories() || [];
-    if (!term) return allCategories;
-    return allCategories.filter(cat => 
-      cat?.title?.toLowerCase().includes(term)
-    );
-  });
-
   ngOnInit() {
-    this.fetchCategories();
+    this.categories$ = this.apiService.getCategories().pipe(
+      map(response => response.data?.[0]?.[0] || []),
+      tap(categories => {
+        this.categoriesLoaded.emit(categories);
+        if (categories.length > 0 && !this.selectedCategory()) {
+          const firstCat = categories[0];
+          this.selectedCategory.set(firstCat);
+          this.categorySelected.emit(firstCat.lovTypeId);
+        }
+        this.isLoading.set(false);
+      }),
+      catchError(err => {
+        console.error(err);
+        this.isLoading.set(false);
+        return of([]);
+      }),
+      startWith([])
+    );
+
+    this.filteredCategories$ = combineLatest([
+      this.categories$,
+      toObservable(this.searchTerm).pipe(startWith(''))
+    ]).pipe(
+      map(([categories, term]) => {
+        const cleanTerm = term?.toLowerCase().trim();
+        if (!cleanTerm) return categories;
+        return categories.filter(cat =>
+          cat?.title?.toLowerCase().includes(cleanTerm)
+        );
+      })
+    );
   }
 
   toggleSearch() {
@@ -44,28 +68,6 @@ export class CategoryToolbar implements OnInit {
 
   onSearchInput(event: any) {
     this.searchTerm.set(event.target.value);
-  }
-
-  fetchCategories() {
-    this.isLoading.set(true);
-    this.apiService.getCategories().subscribe({
-      next: (response) => {
-        const rawCategoriesArray = response.data?.[0]?.[0] || [];
-        this.categories.set(rawCategoriesArray);
-        this.categoriesLoaded.emit(rawCategoriesArray);
-
-        if (rawCategoriesArray.length > 0) {
-          const firstCat = rawCategoriesArray[0];
-          this.selectedCategory.set(firstCat);
-          this.categorySelected.emit(firstCat.lovTypeId);
-        }
-        this.isLoading.set(false);
-      },
-      error: (err) => {
-        console.error(err);
-        this.isLoading.set(false);
-      }
-    });
   }
 
   selectCategory(category: any) {
