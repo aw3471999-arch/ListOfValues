@@ -1,6 +1,7 @@
 import { Component, inject, input, model, output, effect, untracked } from '@angular/core';
 import { PrimengModule } from '../../../../Module/primeng.module';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { LOV_SCHEMA } from '../../lov-Configuration/lov.config';
 
 export type DialogMode = 'ADD' | 'SEARCH' | 'VIEW';
 
@@ -21,13 +22,36 @@ export class LovDialog {
 
   onConfirm = output<any>();
 
+  schema = LOV_SCHEMA
+
+
+  getOptionsForField(key: string): any[] {
+    if (key === 'displayCategory') {
+      return this.categories();
+    }
+    if (key === 'displayParent') {
+      return this.parents();
+    }
+    return [];
+  }
+
+  onFileSelected(event: any, key: string) {
+    const file = event.target.files[0];
+    if (file) {
+      this.lovForm.patchValue({ [key]: file });
+      this.lovForm.get(key)?.updateValueAndValidity();
+      console.log(`File selected for ${key}:`, file.name);
+    }
+  }
+
   lovForm: FormGroup = this.fb.group({
     title: [''],
     titleArabic: [''],
     description: [''],
     descriptionArabic: [''],
     lovTypeId: [null],
-    parentLovId: [null]
+    parentLovId: [null],
+    image:[null]
   });
 
   constructor() {

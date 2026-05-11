@@ -1,6 +1,7 @@
 import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { PrimengModule } from '../../../Module/primeng.module';
 import { LoV } from '../../../Services/ListOfView/lo-v';
+import { LOV_SCHEMA } from '../lov-Configuration/lov.config';
 
 @Component({
   selector: 'app-lov-table',
@@ -14,6 +15,8 @@ export class LovTable {
   loading = input<boolean>(true);
   onView = output<any>();
   onDelete = output<any>();
+
+  schema = LOV_SCHEMA
 
   
 }

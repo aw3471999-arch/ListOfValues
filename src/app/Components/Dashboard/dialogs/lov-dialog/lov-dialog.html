@@ -1,14 +1,53 @@
-<p-dialog 
-    [header]="mode() === 'ADD' ? 'Add List of Value' : (mode() === 'SEARCH' ? 'Search List of Value' : 'List of Value Details')" 
-    [(visible)]="visible"
-    (onShow)="prepareDialog()" 
-    [modal]="true" 
-    [style]="{ width: '70vw' }" 
-    [draggable]="false" 
-    [resizable]="false"
-    class="p-fluid">
+<p-dialog
+    [header]="mode() === 'ADD' ? 'Add List of Value' : (mode() === 'SEARCH' ? 'Search List of Value' : 'List of Value Details')"
+    [(visible)]="visible" (onShow)="prepareDialog()" [modal]="true" [style]="{ width: '70vw' }" [draggable]="false"
+    [resizable]="false" class="p-fluid">
 
     <form [formGroup]="lovForm" class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+
+        @for (field of schema; track field.key) {
+        @if (field.visibleInDialog) {
+
+        <div class="flex flex-col gap-1" [class.col-span-3]="field.type === 'text' || 'dropdown' ">
+            <label class="text-sm font-medium text-slate-500">
+                {{ field.label }}
+                @if (field.required && mode() === 'ADD') {
+                <span class="text-red-500">*</span>
+                }
+            </label>
+
+            @if (field.type === 'text') {
+            <input pInputText [formControlName]="field.key" [placeholder]="'Enter ' + field.label"
+                class="rounded-lg border-slate-200"
+                [class.ng-invalid]="lovForm.get(field.key)?.invalid && lovForm.get(field.key)?.touched">
+            }
+
+            @else if (field.type === 'dropdown') {
+            <p-select [options]="getOptionsForField(field.key)" formControlName="field.key" optionLabel="title"
+                [placeholder]="'Select ' + field.label" [showClear]="true" styleClass="rounded-lg border-slate-200">
+            </p-select>
+            }
+
+
+        </div>
+        }
+        }
+        @if (mode() === 'ADD') {
+        <div class="col-span-1 md:col-span-3">
+            <label class="text-sm font-medium text-slate-500">Image</label>
+            <div class="mt-2">
+                <button pButton type="button" label="Upload Image" icon="pi pi-plus"
+                    class="bg-emerald-500 border-none w-auto px-4 py-2"></button>
+                <p class="text-xs text-slate-400 mt-1 italic">Allowed types: .png, .jpg, .jpeg</p>
+            </div>
+        </div>
+        }
+    </form>
+
+
+
+
+    <!-- <form [formGroup]="lovForm" class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
         
         <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-slate-500">Title <span class="text-red-500" *ngIf="mode() === 'ADD'">*</span></label>
@@ -65,37 +104,29 @@
                 </div>
             </div>
         }
-    </form>
+    </form> -->
 
     <ng-template pTemplate="footer">
         <div class="flex justify-between items-center w-full pt-4 border-t border-slate-100 mt-4">
-            
+
             <div>
                 @if (mode() !== 'VIEW') {
-                    <p-button 
-                        label="Clear" 
-                        [outlined]="true"
-                        styleClass="text-emerald-500 border-emerald-500 hover:bg-emerald-50 px-6"
-                        (click)="lovForm.reset()">
-                    </p-button>
+                <p-button label="Clear" [outlined]="true"
+                    styleClass="text-emerald-500 border-emerald-500 hover:bg-emerald-50 px-6" (click)="lovForm.reset()">
+                </p-button>
                 }
             </div>
 
             <div class="flex gap-2">
                 @if (mode() !== 'VIEW') {
-                    <p-button 
-                        [label]="mode() === 'ADD' ? 'Add' : 'Search'" 
-                        [disabled]="mode() === 'ADD' && lovForm.invalid"
-                        [styleClass]="(mode() === 'ADD' && lovForm.invalid) ? 'bg-slate-100 text-slate-400 border-none' : 'bg-emerald-500 text-white border-none px-8'"
-                        (click)="handleAction()">
-                    </p-button>
+                <p-button [label]="mode() === 'ADD' ? 'Add' : 'Search'" [disabled]="mode() === 'ADD' && lovForm.invalid"
+                    [styleClass]="(mode() === 'ADD' && lovForm.invalid) ? 'bg-slate-100 text-slate-400 border-none' : 'bg-emerald-500 text-white border-none px-8'"
+                    (click)="handleAction()">
+                </p-button>
                 }
-                
-                <p-button 
-                    label="Close" 
-                    [outlined]="true"
-                    styleClass="text-emerald-500 border-emerald-500 hover:bg-emerald-50 px-6"
-                    (click)="close()">
+
+                <p-button label="Close" [outlined]="true"
+                    styleClass="text-emerald-500 border-emerald-500 hover:bg-emerald-50 px-6" (click)="close()">
                 </p-button>
             </div>
         </div>

@@ -11,6 +11,15 @@ import { LoV } from '../../Services/ListOfView/lo-v';
   styleUrl: './login.css',
 })
 export class Login {
+
+  constructor() {
+    let a = 10;
+  let b = 20;
+  [a, b] = [b, a];
+  console.log(a,b);
+  }
+
+
   private fb = inject(FormBuilder);
   private lovService = inject(LoV);
   private router = inject(Router);

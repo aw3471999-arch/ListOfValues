@@ -55,12 +55,12 @@ export class LoV {
           localStorage.setItem('token', token);
           
           // if (verification?.case === 'ALREADY_LOGGED_IN') {
-            // this.verifyUser().subscribe({
-            //   next: (res) => {
-            //     this.isLoggedIn.set(true);
-            //     this.router.navigate(['/dashboard']);
-            //   },
-            // });
+          //   this.verifyUser().subscribe({
+          //     next: (res) => {
+          //       this.isLoggedIn.set(true);
+          //       this.router.navigate(['/dashboard']);
+          //     },
+          //   });
           // } else {
             this.isLoggedIn.set(true);
           // }
@@ -69,8 +69,42 @@ export class LoV {
     );
   }
 
-  logout() {
-    localStorage.removeItem('token');
-    this.isLoggedIn.set(false);
-  }
+  updateUserStatus(status: number, userId: number) {
+  const body = { 
+    data: [{ 
+      userId: userId, 
+      status: status 
+    }] 
+  };
+  return this.http.post<any>(`${this.baseApiUrl}/updateUserStatus`, body);
+}
+
+logout() {
+
+  const userData = JSON.parse(localStorage.getItem('user_session') || '{}');
+  const userId = userData.userId || 2; 
+
+  this.updateUserStatus(0, userId).subscribe({
+    next: () => {
+      this.finalizeLogout();
+    },
+    error: (err) => {
+      console.error('Logout sync failed:', err);
+      this.finalizeLogout();
+    }
+  });
+}
+
+private finalizeLogout() {
+  localStorage.clear();
+  this.isLoggedIn.set(false);
+  window.location.href = '/login';
+}
+
+  // logout(){
+  //   localStorage.removeItem('token');
+  //   this.isLoggedIn.set(false);
+  //   window.location.href='/login';
+  // }
+
 }

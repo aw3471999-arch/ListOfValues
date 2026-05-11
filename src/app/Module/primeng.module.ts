@@ -21,6 +21,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { CheckboxModule } from 'primeng/checkbox';
 import { PasswordModule } from 'primeng/password';
+import { FileUploadModule } from 'primeng/fileupload';
 
 const primengModules = [
     CommonModule,
@@ -42,7 +43,8 @@ const primengModules = [
     IconFieldModule,
     InputIconModule,
     CheckboxModule,
-    PasswordModule
+    PasswordModule,
+    FileUploadModule
 
 
 ];
