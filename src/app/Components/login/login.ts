@@ -2,26 +2,17 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { PrimengModule } from '../../Module/primeng.module';
-import { LoV } from '../../Services/ListOfView/lo-v';
+import { LovService } from '../../Services/lov.service';
 
 @Component({
   selector: 'app-login',
-  imports: [PrimengModule,ReactiveFormsModule],
+  imports: [PrimengModule, ReactiveFormsModule],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
 export class Login {
-
-  constructor() {
-    let a = 10;
-  let b = 20;
-  [a, b] = [b, a];
-  console.log(a,b);
-  }
-
-
   private fb = inject(FormBuilder);
-  private lovService = inject(LoV);
+  private lovService = inject(LovService);
   private router = inject(Router);
 
   loading = signal(false);

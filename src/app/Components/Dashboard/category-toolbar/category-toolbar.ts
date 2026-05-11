@@ -1,7 +1,10 @@
-import { Component, inject, output, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, output, signal, OnInit } from '@angular/core';
 import { PrimengModule } from '../../../Module/primeng.module';
-import { LoV } from '../../../Services/ListOfView/lo-v';
+import { LovService } from '../../../Services/lov.service';
 import { FormsModule } from '@angular/forms';
+import { LovType } from '../../../Interface/interface/lo-v-interface';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { catchError, combineLatest, map, Observable, of, startWith, tap } from 'rxjs';
 
 @Component({
   selector: 'app-category-toolbar',
@@ -11,29 +14,53 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './category-toolbar.css',
 })
 export class CategoryToolbar implements OnInit {
-  private apiService = inject(LoV);
-  
-  categories = signal<any[]>([]);
-  selectedCategory = signal<any>(null);
+  private apiService = inject(LovService);
+
+  categories$!: Observable<LovType[]>;
+  filteredCategories$!: Observable<LovType[]>;
+  selectedCategory = signal<LovType | null>(null);
   isLoading = signal<boolean>(true);
   isSearchOpen = signal<boolean>(false);
   searchTerm = signal<string>('');
 
   categorySelected = output<number>();
-  categoriesLoaded = output<any[]>();
+  categoriesLoaded = output<LovType[]>();
 
-  filteredCategories = computed(() => {
-    const term = this.searchTerm()?.toLowerCase().trim();
-    const allCategories = this.categories() || [];
-    if (!term) return allCategories;
-    return allCategories.filter(cat => 
-      cat?.title?.toLowerCase().includes(term)
+  constructor() {
+    this.categories$ = this.apiService.getCategories().pipe(
+      map(response => response.data?.[0]?.[0] || []),
+      tap(categories => {
+        this.categoriesLoaded.emit(categories);
+        if (categories.length > 0 && !this.selectedCategory()) {
+          const firstCat = categories[0];
+          this.selectedCategory.set(firstCat);
+          this.categorySelected.emit(firstCat.lovTypeId);
+        }
+        this.isLoading.set(false);
+      }),
+      catchError(err => {
+        console.error(err);
+        this.isLoading.set(false);
+        return of([]);
+      }),
+      startWith([])
     );
-  });
 
-  ngOnInit() {
-    this.fetchCategories();
+    this.filteredCategories$ = combineLatest([
+      this.categories$,
+      toObservable(this.searchTerm).pipe(startWith(''))
+    ]).pipe(
+      map(([categories, term]) => {
+        const cleanTerm = term?.toLowerCase().trim();
+        if (!cleanTerm) return categories;
+        return categories.filter(cat =>
+          cat?.title?.toLowerCase().includes(cleanTerm)
+        );
+      })
+    );
   }
+
+  ngOnInit() { }
 
   toggleSearch() {
     this.isSearchOpen.update(val => !val);
@@ -46,29 +73,7 @@ export class CategoryToolbar implements OnInit {
     this.searchTerm.set(event.target.value);
   }
 
-  fetchCategories() {
-    this.isLoading.set(true);
-    this.apiService.getCategories().subscribe({
-      next: (response) => {
-        const rawCategoriesArray = response.data?.[0]?.[0] || [];
-        this.categories.set(rawCategoriesArray);
-        this.categoriesLoaded.emit(rawCategoriesArray);
-
-        if (rawCategoriesArray.length > 0) {
-          const firstCat = rawCategoriesArray[0];
-          this.selectedCategory.set(firstCat);
-          this.categorySelected.emit(firstCat.lovTypeId);
-        }
-        this.isLoading.set(false);
-      },
-      error: (err) => {
-        console.error(err);
-        this.isLoading.set(false);
-      }
-    });
-  }
-
-  selectCategory(category: any) {
+  selectCategory(category: LovType) {
     this.selectedCategory.set(category);
     this.categorySelected.emit(category.lovTypeId);
   }
