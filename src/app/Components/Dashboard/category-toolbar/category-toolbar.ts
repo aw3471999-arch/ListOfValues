@@ -1,7 +1,8 @@
-import { Component, inject, output, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, output, signal, OnInit } from '@angular/core';
 import { PrimengModule } from '../../../Module/primeng.module';
-import { LoV } from '../../../Services/ListOfView/lo-v';
+import { LovService } from '../../../Services/lov.service';
 import { FormsModule } from '@angular/forms';
+import { LovType } from '../../../Interface/interface/lo-v-interface';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { catchError, combineLatest, map, Observable, of, startWith, tap } from 'rxjs';
 
@@ -13,19 +14,19 @@ import { catchError, combineLatest, map, Observable, of, startWith, tap } from '
   styleUrl: './category-toolbar.css',
 })
 export class CategoryToolbar implements OnInit {
-  private apiService = inject(LoV);
-  
-  categories$!: Observable<any[]>;
-  filteredCategories$!: Observable<any[]>;
-  selectedCategory = signal<any>(null);
+  private apiService = inject(LovService);
+
+  categories$!: Observable<LovType[]>;
+  filteredCategories$!: Observable<LovType[]>;
+  selectedCategory = signal<LovType | null>(null);
   isLoading = signal<boolean>(true);
   isSearchOpen = signal<boolean>(false);
   searchTerm = signal<string>('');
 
   categorySelected = output<number>();
-  categoriesLoaded = output<any[]>();
+  categoriesLoaded = output<LovType[]>();
 
-  ngOnInit() {
+  constructor() {
     this.categories$ = this.apiService.getCategories().pipe(
       map(response => response.data?.[0]?.[0] || []),
       tap(categories => {
@@ -59,6 +60,8 @@ export class CategoryToolbar implements OnInit {
     );
   }
 
+  ngOnInit() { }
+
   toggleSearch() {
     this.isSearchOpen.update(val => !val);
     if (!this.isSearchOpen()) {
@@ -70,7 +73,7 @@ export class CategoryToolbar implements OnInit {
     this.searchTerm.set(event.target.value);
   }
 
-  selectCategory(category: any) {
+  selectCategory(category: LovType) {
     this.selectedCategory.set(category);
     this.categorySelected.emit(category.lovTypeId);
   }

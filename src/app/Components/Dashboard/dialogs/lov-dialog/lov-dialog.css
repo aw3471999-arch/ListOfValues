@@ -13,13 +13,3 @@
 textarea {
     resize: none;
 }
-
-::ng-deep .p-button-emerald .p-button {
-    background-color: #10b981 !important; /* emerald-500 */
-    border-color: #10b981 !important;
-    padding: 0.5rem 1rem;
-}
-
-::ng-deep .p-button-emerald .p-button:hover {
-    background-color: #059669 !important; /* emerald-600 */
-}
