@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs';
+import { Observable, shareReplay, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -13,6 +13,8 @@ export class LovService {
 
   isLoggedIn = signal<boolean>(!!localStorage.getItem('token'));
 
+  private categoriesCache$?: Observable<any>;
+
   // verifyUser() {
   //   const token = localStorage.getItem('token');
   //   if (!token) return of(null);
@@ -20,8 +22,13 @@ export class LovService {
   // }
 
   getCategories() {
-    const body = { data: [{}] };
-    return this.http.post<any>(this.baseApiUrl + '/LovType/findAllLovType', body);
+    if (!this.categoriesCache$) {
+      const body = { data: [{}] };
+      this.categoriesCache$ = this.http
+        .post<any>(this.baseApiUrl + '/LovType/findAllLovType', body)
+        .pipe(shareReplay(1));
+    }
+    return this.categoriesCache$;
   }
 
   getListOfValues(lovTypeId: number) {
@@ -62,5 +69,6 @@ export class LovService {
   logout() {
     localStorage.removeItem('token');
     this.isLoggedIn.set(false);
+    this.categoriesCache$ = undefined;
   }
 }
