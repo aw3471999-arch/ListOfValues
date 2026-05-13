@@ -30,3 +30,10 @@
 //     this.onDeleteItem.emit(item);
 //   }
 // }
+import { Component } from '@angular/core';
+@Component({
+  selector: 'app-lov-card',
+  template: '',
+  standalone: true
+})
+export class LovCard {}

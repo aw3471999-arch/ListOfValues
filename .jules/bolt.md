@@ -1,0 +1,3 @@
+## 2026-05-13 - [Caching semi-static LOV data]
+**Learning:** The application frequently fetches "List of Values" (LOV) data across different components (CategoryToolbar, CategoryCard). Without caching, each component or category switch triggers a redundant network request for data that changes infrequently.
+**Action:** Implement `shareReplay(1)` in the core data service (`LovService`) to memoize API responses. Use a `Map` to cache parameterized requests (like `lovTypeId`) and ensure a centralized `clearCache` mechanism is called during data mutations (`add`, `delete`) and `logout` to maintain data consistency.
