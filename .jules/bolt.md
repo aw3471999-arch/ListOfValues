@@ -1,0 +1,3 @@
+## 2026-05-21 - API Response Caching in LovService
+**Learning:** Implementing caching for semi-static data (like List of Values) using `shareReplay(1)` significantly reduces redundant HTTP requests. However, it's crucial to handle errors correctly by clearing the cache and re-throwing the error using `throwError`, otherwise the cache will store a failed state and the UI might receive an error object instead of the expected data structure.
+**Action:** Always use `catchError` with `throwError` in service caching layers to preserve error propagation and ensure the cache is reset for future retries.
