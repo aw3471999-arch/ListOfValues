@@ -1,0 +1,3 @@
+## 2026-05-26 - API Response Caching in LovService
+**Learning:** For semi-static data like 'List of Values' (LOV) and categories, implementing API response caching in the service layer using `shareReplay(1)` significantly reduces redundant network requests and improves perceived application performance. It is crucial to invalidate these caches during data-modifying operations (`addlov`, `deletelov`) and on `logout`.
+**Action:** Always consider implementing a caching strategy for frequently accessed, slow-changing data in Angular services. Ensure robust cache invalidation and error handling (resetting the cache on HTTP failure).
