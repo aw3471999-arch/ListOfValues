@@ -1,0 +1,3 @@
+## 2026-05-30 - API Caching with shareReplay(1)
+**Learning:** For semi-static data like 'List of Values' (LOV), implementing API response caching in services using `shareReplay(1)` drastically reduces redundant network requests, especially when components like toolbars and tables are frequently re-rendered or swapped. Caching must be carefully invalidated during mutations (`addlov`, `deletelov`) and logout to maintain data consistency.
+**Action:** Always implement caching for reference data that doesn't change often but is requested multiple times across the application lifecycle. Ensure the cache is cleared on logout.
