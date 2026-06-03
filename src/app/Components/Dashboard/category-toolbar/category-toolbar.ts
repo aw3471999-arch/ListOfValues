@@ -4,7 +4,17 @@ import { LovService } from '../../../Services/lov.service';
 import { FormsModule } from '@angular/forms';
 import { LovType } from '../../../Interface/interface/lo-v-interface';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { catchError, combineLatest, map, Observable, of, startWith, tap } from 'rxjs';
+import {
+  catchError,
+  combineLatest,
+  debounceTime,
+  distinctUntilChanged,
+  map,
+  Observable,
+  of,
+  startWith,
+  tap,
+} from 'rxjs';
 
 @Component({
   selector: 'app-category-toolbar',
@@ -48,7 +58,11 @@ export class CategoryToolbar implements OnInit {
 
     this.filteredCategories$ = combineLatest([
       this.categories$,
-      toObservable(this.searchTerm).pipe(startWith(''))
+      toObservable(this.searchTerm).pipe(
+        startWith(''),
+        debounceTime(300),
+        distinctUntilChanged()
+      ),
     ]).pipe(
       map(([categories, term]) => {
         const cleanTerm = term?.toLowerCase().trim();
