@@ -14,6 +14,9 @@ describe('LovDialog', () => {
 
     fixture = TestBed.createComponent(LovDialog);
     component = fixture.componentInstance;
+    fixture.componentRef.setInput('mode', 'ADD');
+    fixture.componentRef.setInput('visible', true);
+    fixture.componentRef.setInput('categories', []);
     await fixture.whenStable();
   });
 
