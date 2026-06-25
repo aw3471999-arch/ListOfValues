@@ -1,7 +1,7 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { retry, timer, throwError } from 'rxjs';
 
-export const authInterceptor: HttpInterceptorFn = (req, next) => {
+export const interceptorInterceptor: HttpInterceptorFn = (req, next) => {
   const token = localStorage.getItem('token');
 
   const metadata = {
