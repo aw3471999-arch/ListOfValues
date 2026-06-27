@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { LovDialog } from './lov-dialog';
 
 describe('LovDialog', () => {
@@ -14,7 +13,8 @@ describe('LovDialog', () => {
 
     fixture = TestBed.createComponent(LovDialog);
     component = fixture.componentInstance;
-    await fixture.whenStable();
+    fixture.componentRef.setInput('mode', 'ADD');
+    fixture.detectChanges();
   });
 
   it('should create', () => {
