@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs';
+import { tap, shareReplay, Observable, catchError, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -13,30 +13,66 @@ export class LovService {
 
   isLoggedIn = signal<boolean>(!!localStorage.getItem('token'));
 
-  // verifyUser() {
-  //   const token = localStorage.getItem('token');
-  //   if (!token) return of(null);
-  //   return this.http.post<any>(`${this.baseApiUrl}/verifyUser`, { data: [{ token }] });
-  // }
+  // Performance Optimization: Cache for categories and LOV items
+  private categoriesCache$?: Observable<any>;
+  private lovCache = new Map<number, Observable<any>>();
 
-  getCategories() {
-    const body = { data: [{}] };
-    return this.http.post<any>(this.baseApiUrl + '/LovType/findAllLovType', body);
+  /**
+   * Clears all cached API responses.
+   * Called after mutations (add/delete) or auth changes.
+   */
+  private clearCache() {
+    this.categoriesCache$ = undefined;
+    this.lovCache.clear();
   }
 
+  /**
+   * Fetches all LOV categories. Results are cached using shareReplay.
+   */
+  getCategories() {
+    if (!this.categoriesCache$) {
+      const body = { data: [{}] };
+      this.categoriesCache$ = this.http.post<any>(this.baseApiUrl + '/LovType/findAllLovType', body).pipe(
+        shareReplay(1),
+        catchError((err) => {
+          this.categoriesCache$ = undefined;
+          return throwError(() => err);
+        })
+      );
+    }
+    return this.categoriesCache$;
+  }
+
+  /**
+   * Fetches LOV items for a specific category. Results are cached per lovTypeId.
+   */
   getListOfValues(lovTypeId: number) {
-    const body = { data: [{ lovTypeId: lovTypeId }] };
-    return this.http.post<any>(`${this.baseApiUrl}/lov/findAlllov`, body);
+    if (!this.lovCache.has(lovTypeId)) {
+      const body = { data: [{ lovTypeId: lovTypeId }] };
+      const call$ = this.http.post<any>(`${this.baseApiUrl}/lov/findAlllov`, body).pipe(
+        shareReplay(1),
+        catchError((err) => {
+          this.lovCache.delete(lovTypeId);
+          return throwError(() => err);
+        })
+      );
+      this.lovCache.set(lovTypeId, call$);
+    }
+    return this.lovCache.get(lovTypeId)!;
   }
 
   addlov(formattedData: any) {
     const body = { data: [formattedData] };
-    return this.http.post<any>(`${this.baseApiUrl}/lov/addlov`, body);
+    return this.http.post<any>(`${this.baseApiUrl}/lov/addlov`, body).pipe(
+      tap(() => this.clearCache())
+    );
   }
 
   deletelov(lovId: number) {
     const body = { data: [{ lovId: lovId }] };
-    return this.http.post<any>(`${this.baseApiUrl}/lov/deletelov`, body);
+    return this.http.post<any>(`${this.baseApiUrl}/lov/deletelov`, body).pipe(
+      tap(() => this.clearCache())
+    );
   }
 
   searchLov(searchCriteria: any) {
@@ -54,6 +90,7 @@ export class LovService {
         if (token) {
           localStorage.setItem('token', token);
           this.isLoggedIn.set(true);
+          this.clearCache();
         }
       })
     );
@@ -62,5 +99,6 @@ export class LovService {
   logout() {
     localStorage.removeItem('token');
     this.isLoggedIn.set(false);
+    this.clearCache();
   }
 }
