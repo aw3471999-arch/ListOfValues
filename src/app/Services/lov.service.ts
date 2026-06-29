@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { tap } from 'rxjs';
+import { catchError, Observable, shareReplay, tap, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +11,15 @@ export class LovService {
   private router = inject(Router);
   baseApiUrl = 'https://deveduportalbe.hive-worx.com:3038/edunode';
 
+  private categoriesCache$?: Observable<any>;
+  private lovCache = new Map<number, Observable<any>>();
+
   isLoggedIn = signal<boolean>(!!localStorage.getItem('token'));
+
+  clearCache() {
+    this.categoriesCache$ = undefined;
+    this.lovCache.clear();
+  }
 
   // verifyUser() {
   //   const token = localStorage.getItem('token');
@@ -20,23 +28,51 @@ export class LovService {
   // }
 
   getCategories() {
+    if (this.categoriesCache$) {
+      return this.categoriesCache$;
+    }
+
     const body = { data: [{}] };
-    return this.http.post<any>(this.baseApiUrl + '/LovType/findAllLovType', body);
+    this.categoriesCache$ = this.http.post<any>(this.baseApiUrl + '/LovType/findAllLovType', body).pipe(
+      shareReplay(1),
+      catchError((err) => {
+        this.clearCache();
+        return throwError(() => err);
+      })
+    );
+    return this.categoriesCache$;
   }
 
   getListOfValues(lovTypeId: number) {
+    const cached = this.lovCache.get(lovTypeId);
+    if (cached) {
+      return cached;
+    }
+
     const body = { data: [{ lovTypeId: lovTypeId }] };
-    return this.http.post<any>(`${this.baseApiUrl}/lov/findAlllov`, body);
+    const request$ = this.http.post<any>(`${this.baseApiUrl}/lov/findAlllov`, body).pipe(
+      shareReplay(1),
+      catchError((err) => {
+        this.lovCache.delete(lovTypeId);
+        return throwError(() => err);
+      })
+    );
+    this.lovCache.set(lovTypeId, request$);
+    return request$;
   }
 
   addlov(formattedData: any) {
     const body = { data: [formattedData] };
-    return this.http.post<any>(`${this.baseApiUrl}/lov/addlov`, body);
+    return this.http.post<any>(`${this.baseApiUrl}/lov/addlov`, body).pipe(
+      tap(() => this.clearCache())
+    );
   }
 
   deletelov(lovId: number) {
     const body = { data: [{ lovId: lovId }] };
-    return this.http.post<any>(`${this.baseApiUrl}/lov/deletelov`, body);
+    return this.http.post<any>(`${this.baseApiUrl}/lov/deletelov`, body).pipe(
+      tap(() => this.clearCache())
+    );
   }
 
   searchLov(searchCriteria: any) {
@@ -48,6 +84,7 @@ export class LovService {
     const body = { data: [credentials] };
     return this.http.post<any>(`${this.baseApiUrl}/login`, body).pipe(
       tap((response) => {
+        this.clearCache();
         const verification = response?.data?.[0]?.verification;
         const token = verification?.token;
 
@@ -60,6 +97,7 @@ export class LovService {
   }
 
   logout() {
+    this.clearCache();
     localStorage.removeItem('token');
     this.isLoggedIn.set(false);
   }
