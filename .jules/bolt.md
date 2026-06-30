@@ -1,0 +1,3 @@
+## 2026-06-30 - API Response Caching in LovService
+**Learning:** Implementing API response caching using `shareReplay(1)` in Angular services is an effective way to reduce redundant network requests for semi-static data like categories or list-of-values. It significantly improves perceived performance when navigating between components that depend on the same data. Cache invalidation must be carefully handled during mutations (add/delete) and authentication state changes (login/logout) to prevent stale data.
+**Action:** Always consider `shareReplay(1)` for GET-like POST requests that fetch reference data. Ensure a `clearCache()` mechanism is in place for state-altering operations.
